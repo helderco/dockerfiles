@@ -1,0 +1,29 @@
+elasticsearch:
+  image: helder/elasticsearch:1.1.1
+  volumes:
+    - /var/srv/elasticsearch:/data
+
+kibana:
+  image: helder/kibana:3.1.2
+  ports:
+    - 80:80
+  links:
+    - elasticsearch
+  environment:
+    - DEFAULT_ROUTE=/dashboard/file/logstash.json
+
+logstash:
+  image: helder/logstash:1.4.2
+  command: bin/logstash agent -f central.conf
+  ports:
+    - 5000:5000
+  links:
+    - elasticsearch
+  volumes:
+    - ssl:/etc/logstash/ssl
+    - logstash.conf:/opt/logstash/central.conf
+
+forwarder:
+  image: helder/logstash-forwarder:latest
+  volumes:
+    - /usr/local/bin:/target
